@@ -1,0 +1,7 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Effect":"Allow","Action":["s3:ListBucket","s3:ListBucketVersions"],"Resource":"arn:aws:s3:::YOUR_BUCKET","Condition":{"StringLike":{"s3:prefix":["avatars/*","users/*","exports/*"]}}},
+    {"Effect":"Allow","Action":["s3:GetObject","s3:PutObject","s3:DeleteObject","s3:DeleteObjectVersion"],"Resource":["arn:aws:s3:::YOUR_BUCKET/avatars/*","arn:aws:s3:::YOUR_BUCKET/users/*","arn:aws:s3:::YOUR_BUCKET/exports/*"]}
+  ]
+}

@@ -1,0 +1,23 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo
+target/
+.venv/
+__pycache__/
+.pytest_cache/
+*.log
+http/bruno/identity-service.local.bruno.json
+http/bruno/identity-service/environments/Local-private.bru
+
+# Interrupted Python test caches
+pytest-cache-files-*/
+
+# Deployment signing keys
+*.pem
+*.key

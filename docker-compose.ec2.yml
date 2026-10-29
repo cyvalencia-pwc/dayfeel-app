@@ -1,0 +1,240 @@
+services:
+  web:
+    build: ./frontend
+    ports:
+      - 127.0.0.1:8080:80
+    restart: unless-stopped
+    depends_on:
+      - identity
+      - content
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  identity:
+    build: ./services/identity-service
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/dayfeel_identity
+      DB_USER: dayfeel
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      INTERNAL_KEY: ${INTERNAL_KEY:?Set INTERNAL_KEY}
+      JWT_PRIVATE_KEY_BASE64: ${JWT_PRIVATE_KEY_BASE64:?Set JWT_PRIVATE_KEY_BASE64}
+      JWT_PUBLIC_KEY_BASE64: ${JWT_PUBLIC_KEY_BASE64:?Set JWT_PUBLIC_KEY_BASE64}
+      JWT_EPHEMERAL_KEYS: 'false'
+      EVENTS_MODE: kafka
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      STORAGE_MODE: s3
+      DAYFEEL_STORAGE_BUCKET: ${S3_BUCKET:?Set S3_BUCKET}
+      DAYFEEL_STORAGE_REGION: ${AWS_REGION:-us-east-1}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+    networks:
+      - default
+      - data
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  content:
+    build: ./services/content-service
+    restart: unless-stopped
+    environment:
+      PORT: '8082'
+      MONGODB_URI: mongodb://mongo:27017/dayfeel_content?replicaSet=rs0
+      IDENTITY_URL: http://identity:8081
+      AI_URL: http://ai:8000
+      JWKS_URL: http://identity:8081/.well-known/jwks.json
+      JWT_ISSUER: dayfeel-identity
+      JWT_AUDIENCE: dayfeel
+      INTERNAL_KEY: ${INTERNAL_KEY:?Set INTERNAL_KEY}
+      KAFKA_BROKERS: kafka:9092
+      S3_BUCKET: ${S3_BUCKET:?Set S3_BUCKET}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+    depends_on:
+      identity:
+        condition: service_started
+      ai:
+        condition: service_started
+      mongo:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    networks:
+      - default
+      - data
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  ai:
+    build: ./services/ai-service
+    restart: unless-stopped
+    environment:
+      INTERNAL_KEY: ${INTERNAL_KEY:?Set INTERNAL_KEY}
+      IDENTITY_URL: http://identity:8081
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: dayfeel_identity
+      MYSQL_USER: dayfeel
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - MYSQL_PWD="$$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u dayfeel -D dayfeel_identity -e "SELECT 1"
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  mongo:
+    image: mongo:7.0
+    command:
+      - mongod
+      - '--replSet'
+      - rs0
+      - '--bind_ip_all'
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+      - ./deploy/ec2/mongo-health.js:/opt/mongo-health.js:ro
+    networks:
+      - data
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - '--quiet'
+        - '--file'
+        - /opt/mongo-health.js
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  kafka:
+    image: apache/kafka:3.9.1
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: '1'
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: '1'
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: '1'
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: '1'
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: '0'
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_HEAP_OPTS: '-Xms512m -Xmx1g'
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    depends_on:
+      kafka-volume-init:
+        condition: service_completed_successfully
+  kafka-init:
+    image: apache/kafka:3.9.1
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - /opt/dayfeel/init-topics.sh
+    volumes:
+      - ./deploy/ec2/init-topics.sh:/opt/dayfeel/init-topics.sh:ro
+    networks:
+      - data
+    restart: 'no'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?Set domain or http://IP}
+    volumes:
+      - ./deploy/ec2/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  kafka-volume-init:
+    image: busybox:1.37
+    user: '0:0'
+    command:
+      - sh
+      - '-c'
+      - mkdir -p /data && chown 1000:1000 /data
+    volumes:
+      - kafka-data:/data
+    network_mode: none
+    restart: 'no'
+name: dayfeel
+networks:
+  default: {}
+  data:
+    internal: true
+volumes:
+  mysql-data: {}
+  mongo-data: {}
+  kafka-data: {}
+  caddy-data: {}
+  caddy-config: {}

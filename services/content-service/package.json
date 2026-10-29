@@ -1,0 +1,52 @@
+{
+  "name": "@dayfeel/content-service",
+  "version": "0.2.0",
+  "private": true,
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "node scripts/clean-build.cjs && tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "test": "jest --runInBand",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "validate:openapi": "node scripts/validate-openapi.cjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1155.0",
+    "@aws-sdk/s3-presigned-post": "^3.1155.0",
+    "@aws-sdk/s3-request-presigner": "^3.1155.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "jose": "^5.10.0",
+    "kafkajs": "^2.2.4",
+    "mongoose": "^8.12.0",
+    "pino": "^9.6.0",
+    "socket.io": "^4.8.4",
+    "socket.io-client": "^4.8.4",
+    "zod": "^3.24.2"
+  },
+  "overrides": {
+    "@istanbuljs/load-nyc-config": {
+      "js-yaml": "^4.3.2"
+    }
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "^13.1.0",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.17.24",
+    "@types/supertest": "^6.0.2",
+    "jest": "^30.5.2",
+    "mongodb-memory-server": "^10.1.4",
+    "prettier": "^3.9.10",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.4.15",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

@@ -1,0 +1,20 @@
+# Isolated local development replica set for content-service transactions.
+services:
+  content-mongodb:
+    image: mongo:7.0
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--port", "27018"]
+    ports:
+      - "127.0.0.1:27018:27018"
+    volumes:
+      - content-mongo:/data/db
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --port 27018 --quiet --eval
+          'try { rs.status().ok } catch (e) { rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27018"}]}).ok }'
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  content-mongo:

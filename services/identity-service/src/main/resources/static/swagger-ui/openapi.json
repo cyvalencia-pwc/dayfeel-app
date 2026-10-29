@@ -1,0 +1,2039 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "DayFeel identity-service",
+    "version": "0.1.0",
+    "description": "Phase 1 identity API. Internal operations require X-Internal-Key and must never be gateway-routed. Journal/chat/companion text is not accepted. DayFeel supports wellbeing and self-reflection; it does not diagnose, treat, or replace professional care."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "Profile"
+    },
+    {
+      "name": "Circles"
+    },
+    {
+      "name": "Moderation"
+    },
+    {
+      "name": "Privacy"
+    },
+    {
+      "name": "Crisis"
+    },
+    {
+      "name": "Internal"
+    },
+    {
+      "name": "Operations"
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "operationId": "post_auth_register",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Register anonymous-alias account",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tokens"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Credentials"
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "post_auth_login",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Login; five failures lock account for 15 minutes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tokens"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Credentials"
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "post_auth_refresh",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Rotate refresh token; reuse revokes all sessions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tokens"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Refresh"
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "post_auth_logout",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Revoke all account sessions",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      }
+    },
+    "/.well-known/jwks.json": {
+      "get": {
+        "operationId": "get_well_known_jwks_json",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Public RS256 verification keys",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Jwks"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "security": []
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "get_me",
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Read own profile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patch_me",
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Change alias",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Alias"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/consent": {
+      "get": {
+        "operationId": "get_me_consent",
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Read own consent",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Consent"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      },
+      "put": {
+        "operationId": "put_me_consent",
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Replace consent; omitted flags become false",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Consent"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Consent"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/avatar-upload": {
+      "post": {
+        "operationId": "post_me_avatar_upload",
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Request five-minute avatar upload URL",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Upload"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AvatarRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/circles": {
+      "get": {
+        "operationId": "get_circles",
+        "tags": [
+          "Circles"
+        ],
+        "summary": "List circles; no user identifiers",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Circle"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post_circles",
+        "tags": [
+          "Circles"
+        ],
+        "summary": "Create a circle and owner membership",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Circle"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCircle"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/circles/{circle}/members/me": {
+      "post": {
+        "operationId": "post_circles_circle_members_me",
+        "tags": [
+          "Circles"
+        ],
+        "summary": "Join or reactivate membership",
+        "parameters": [
+          {
+            "name": "circle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Membership"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete_circles_circle_members_me",
+        "tags": [
+          "Circles"
+        ],
+        "summary": "Leave; owner and restricted members cannot leave",
+        "parameters": [
+          {
+            "name": "circle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      }
+    },
+    "/circles/{circle}/moderators/{target}": {
+      "put": {
+        "operationId": "put_circles_circle_moderators_target_",
+        "tags": [
+          "Circles"
+        ],
+        "summary": "Owner appoints a circle moderator",
+        "parameters": [
+          {
+            "name": "circle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "target",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      }
+    },
+    "/reports": {
+      "post": {
+        "operationId": "post_reports",
+        "tags": [
+          "Moderation"
+        ],
+        "summary": "Report category and references only",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Id"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/circles/{circle}/moderation": {
+      "post": {
+        "operationId": "post_circles_circle_moderation",
+        "tags": [
+          "Moderation"
+        ],
+        "summary": "Moderate within authorized scope",
+        "parameters": [
+          {
+            "name": "circle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Moderation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/exports": {
+      "post": {
+        "operationId": "post_me_exports",
+        "tags": [
+          "Privacy"
+        ],
+        "summary": "Request content-service archive generation",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequest"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      }
+    },
+    "/me/deletion": {
+      "post": {
+        "operationId": "post_me_deletion",
+        "tags": [
+          "Privacy"
+        ],
+        "summary": "Request account deletion and revoke sessions",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequest"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      }
+    },
+    "/me/privacy-requests/{id}": {
+      "get": {
+        "operationId": "get_me_privacy_requests_id_",
+        "tags": [
+          "Privacy"
+        ],
+        "summary": "Read owned request and authorized download URL",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequest"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      }
+    },
+    "/internal/circles/{circle}/users/{user}/restrictions": {
+      "get": {
+        "operationId": "get_internal_circles_circle_users_user_restrictions",
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Read effective restrictions including inactive memberships",
+        "parameters": [
+          {
+            "name": "circle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Restriction"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "security": [
+          {
+            "internalKey": []
+          }
+        ],
+        "x-internal": true
+      }
+    },
+    "/internal/circles/{circle}/users/{user}/membership": {
+      "get": {
+        "operationId": "get_internal_circles_circle_users_user_membership",
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Read membership",
+        "parameters": [
+          {
+            "name": "circle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Membership"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "security": [
+          {
+            "internalKey": []
+          }
+        ],
+        "x-internal": true
+      }
+    },
+    "/internal/users/{user}/consent": {
+      "get": {
+        "operationId": "get_internal_users_user_consent",
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Read authoritative consent",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Consent"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "security": [
+          {
+            "internalKey": []
+          }
+        ],
+        "x-internal": true
+      }
+    },
+    "/internal/aliases": {
+      "post": {
+        "operationId": "post_internal_aliases",
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Resolve aliases for backend mapping",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AliasMap"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Aliases"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "internalKey": []
+          }
+        ],
+        "x-internal": true
+      }
+    },
+    "/internal/reports": {
+      "post": {
+        "operationId": "post_internal_reports",
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Create an AI report without submitted text",
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Id"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiReport"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "internalKey": []
+          }
+        ],
+        "x-internal": true
+      }
+    },
+    "/internal/users/{user}/export-data": {
+      "get": {
+        "operationId": "get_internal_users_user_export_data",
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Read identity export data without credentials",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityExport"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "security": [
+          {
+            "internalKey": []
+          }
+        ],
+        "x-internal": true
+      }
+    },
+    "/actuator/health": {
+      "get": {
+        "operationId": "get_actuator_health",
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Read aggregate health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        },
+        "security": []
+      }
+    },
+    "/me/session": {
+      "get": {
+        "operationId": "get_me_session",
+        "summary": "Read own server-derived roles and onboarding state",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      }
+    },
+    "/me/onboarding": {
+      "post": {
+        "operationId": "post_me_onboarding",
+        "summary": "Record acknowledgement and finish onboarding",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Onboarding"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Completed"
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      }
+    },
+    "/circles/{circle}/reports": {
+      "get": {
+        "operationId": "get_circle_reports",
+        "summary": "Authorized moderator report queue; 20 per page",
+        "parameters": [
+          {
+            "name": "circle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReportView"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      }
+    },
+    "/reports/{report}": {
+      "get": {
+        "operationId": "get_report",
+        "summary": "Authorized moderator report detail",
+        "parameters": [
+          {
+            "name": "report",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportView"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/StandardError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT RS256"
+      },
+      "internalKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Internal-Key"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "timestamp",
+          "status",
+          "code",
+          "message",
+          "path",
+          "traceId"
+        ],
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "Credentials": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 72,
+            "writeOnly": true,
+            "description": "Registration also enforces 72 UTF-8 bytes maximum."
+          }
+        }
+      },
+      "Refresh": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "refreshToken"
+        ],
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "writeOnly": true
+          }
+        }
+      },
+      "Tokens": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "tokenType",
+          "expiresIn"
+        ],
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Consent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "companionMemory": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "alias",
+          "avatarUrl",
+          "consent"
+        ],
+        "properties": {
+          "alias": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "consent": {
+            "$ref": "#/components/schemas/Consent"
+          }
+        }
+      },
+      "Alias": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "alias"
+        ],
+        "properties": {
+          "alias": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9]{2,39}$"
+          }
+        }
+      },
+      "AvatarRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contentType",
+          "size"
+        ],
+        "properties": {
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ]
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 5242880
+          }
+        }
+      },
+      "Upload": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "objectKey",
+          "url",
+          "expiresAt",
+          "uploadSupported",
+          "requiredHeaders"
+        ],
+        "properties": {
+          "objectKey": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "Empty for local stub"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "uploadSupported": {
+            "type": "boolean"
+          },
+          "requiredHeaders": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Circle": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "joined"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "joined": {
+            "type": "boolean",
+            "description": "Whether the authenticated user has an active membership in this circle. Membership does not override moderation restrictions."
+          }
+        }
+      },
+      "CreateCircle": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        }
+      },
+      "Membership": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "active",
+          "role",
+          "mutedUntil",
+          "bannedUntil"
+        ],
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "OWNER",
+              "MODERATOR",
+              "MEMBER"
+            ]
+          },
+          "mutedUntil": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "bannedUntil": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "Restriction": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "member",
+          "muted",
+          "banned"
+        ],
+        "properties": {
+          "member": {
+            "type": "boolean"
+          },
+          "muted": {
+            "type": "boolean"
+          },
+          "banned": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AiReport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "targetId",
+          "circleId",
+          "contentId",
+          "reason",
+          "source"
+        ],
+        "properties": {
+          "targetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "circleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "HARASSMENT",
+              "SPAM",
+              "UNSAFE",
+              "OTHER"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "AI"
+            ]
+          }
+        }
+      },
+      "ReportInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "targetId",
+          "circleId",
+          "reason"
+        ],
+        "properties": {
+          "targetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "circleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contentId": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "HARASSMENT",
+              "SPAM",
+              "UNSAFE",
+              "OTHER"
+            ]
+          }
+        }
+      },
+      "Id": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Moderation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "targetId",
+          "action"
+        ],
+        "properties": {
+          "targetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "MUTE",
+              "BAN",
+              "UNBAN",
+              "REMOVE_CONTENT"
+            ]
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Required for MUTE/BAN; future and at most 365 days."
+          },
+          "contentId": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true,
+            "description": "Required for REMOVE_CONTENT."
+          }
+        }
+      },
+      "PrivacyRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "downloadUrl"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "EXPORT",
+              "DELETION"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "COMPLETED"
+            ]
+          },
+          "downloadUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Aliases": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "userIds"
+        ],
+        "properties": {
+          "userIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          }
+        }
+      },
+      "AliasMap": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Internal mapping only. Never expose user IDs to community clients."
+      },
+      "Completion": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "userId"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "objectKey": {
+            "type": "string",
+            "maxLength": 512,
+            "nullable": true,
+            "description": "Required for export: exports/{requestId}/{name}.zip"
+          }
+        }
+      },
+      "IdentityExport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "email",
+          "alias",
+          "createdAt",
+          "consent",
+          "avatarKey",
+          "roles",
+          "ownedCircles",
+          "memberships",
+          "reports",
+          "moderationActions",
+          "privacyRequests"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "alias": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "consent": {
+            "$ref": "#/components/schemas/Consent"
+          },
+          "avatarKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ownedCircles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Circle"
+            }
+          },
+          "memberships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportMembership"
+            }
+          },
+          "reports": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportReport"
+            }
+          },
+          "moderationActions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportAction"
+            }
+          },
+          "privacyRequests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportRequest"
+            }
+          }
+        }
+      },
+      "Jwks": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "keys"
+        ],
+        "properties": {
+          "keys": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kty",
+                "use",
+                "alg",
+                "kid",
+                "n",
+                "e"
+              ],
+              "properties": {
+                "kty": {
+                  "type": "string",
+                  "enum": [
+                    "RSA"
+                  ]
+                },
+                "use": {
+                  "type": "string",
+                  "enum": [
+                    "sig"
+                  ]
+                },
+                "alg": {
+                  "type": "string",
+                  "enum": [
+                    "RS256"
+                  ]
+                },
+                "kid": {
+                  "type": "string"
+                },
+                "n": {
+                  "type": "string"
+                },
+                "e": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "Event": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "version",
+          "occurredAt",
+          "payload"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ConsentChanged",
+              "ModerationActionCreated",
+              "DataExportRequested",
+              "UserDeletionRequested",
+              "DataExportCompleted",
+              "UserDeletionCompleted"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "enum": [
+              1
+            ]
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "ExportMembership": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "circleId",
+          "role",
+          "active",
+          "mutedUntil",
+          "bannedUntil"
+        ],
+        "properties": {
+          "circleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "OWNER",
+              "MODERATOR",
+              "MEMBER"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "mutedUntil": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "bannedUntil": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "ExportReport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "circleId",
+          "contentId",
+          "reason",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "circleId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "contentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "HARASSMENT",
+              "SPAM",
+              "UNSAFE",
+              "OTHER"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ExportAction": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "circleId",
+          "contentId",
+          "action",
+          "createdAt",
+          "performedByUser"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "circleId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "contentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "action": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "performedByUser": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ExportRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "EXPORT",
+              "DELETION"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "COMPLETED"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Session": {
+        "type": "object",
+        "required": [
+          "roles",
+          "onboardingComplete"
+        ],
+        "properties": {
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "USER",
+                "MODERATOR",
+                "ADMIN"
+              ]
+            }
+          },
+          "onboardingComplete": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Onboarding": {
+        "type": "object",
+        "required": [
+          "acknowledged"
+        ],
+        "properties": {
+          "acknowledged": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        }
+      },
+      "ReportView": {
+        "type": "object",
+        "required": [
+          "id",
+          "targetId",
+          "circleId",
+          "contentId",
+          "reason",
+          "source",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "circleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "HARASSMENT",
+              "SPAM",
+              "UNSAFE",
+              "OTHER"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "AI",
+              "USER"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "responses": {
+      "StandardError": {
+        "description": "Sanitized error with traceId; unexpected errors never include exception messages.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

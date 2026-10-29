@@ -1,0 +1,101 @@
+@base = http://localhost:8081
+@accessToken = paste-access-token
+@refreshToken = paste-refresh-token
+@internalKey = replace-with-configured-key
+@userId = replace-with-user-uuid
+@circleId = replace-with-circle-uuid
+@requestId = replace-with-request-uuid
+
+### Register (fresh development database)
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{"email":"demo@example.com","password":"local-demo-password"}
+
+### Login
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email":"demo@example.com","password":"local-demo-password"}
+
+### Rotate: replace refreshToken after every successful call
+POST {{base}}/auth/refresh
+Content-Type: application/json
+
+{"refreshToken":"{{refreshToken}}"}
+
+### Public keys
+GET {{base}}/.well-known/jwks.json
+
+### Profile
+GET {{base}}/me
+Authorization: Bearer {{accessToken}}
+
+### Consent: defaults OFF; explicit opt-in
+PUT {{base}}/me/consent
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"aiAnalysis":false,"companionMemory":false}
+
+### Alias
+PATCH {{base}}/me
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"alias":"QuietOtter42"}
+
+### Avatar URL (local stub returns uploadSupported=false)
+POST {{base}}/me/avatar-upload
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"contentType":"image/png","size":1024}
+
+### Create circle
+POST {{base}}/circles
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"name":"Everyday grounding"}
+
+### Join circle
+POST {{base}}/circles/{{circleId}}/members/me
+Authorization: Bearer {{accessToken}}
+
+### Report by reference only
+POST {{base}}/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"targetId":"{{userId}}","circleId":"{{circleId}}","contentId":"post-123","reason":"UNSAFE"}
+
+### Global directory fallback
+GET {{base}}/crisis-resources?region=SG
+
+### Request export
+POST {{base}}/me/exports
+Authorization: Bearer {{accessToken}}
+
+### Export status
+GET {{base}}/me/privacy-requests/{{requestId}}
+Authorization: Bearer {{accessToken}}
+
+### Internal consent (never gateway-routed)
+GET {{base}}/internal/users/{{userId}}/consent
+X-Internal-Key: {{internalKey}}
+
+### Content-service export callback
+POST {{base}}/internal/exports/completed
+X-Internal-Key: {{internalKey}}
+Content-Type: application/json
+
+{"requestId":"{{requestId}}","userId":"{{userId}}","objectKey":"exports/{{requestId}}/data.zip"}
+
+### Logout all sessions
+POST {{base}}/auth/logout
+Authorization: Bearer {{accessToken}}
+
+### Request deletion: immediately revokes all access/refresh tokens
+POST {{base}}/me/deletion
+Authorization: Bearer {{accessToken}}

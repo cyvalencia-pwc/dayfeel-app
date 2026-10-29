@@ -1,0 +1,17 @@
+node_modules
+dist
+target
+.venv
+.env
+.env.*
+*.pem
+*.key
+.git
+__pycache__
+.pytest_cache
+pytest-cache-files-*
+coverage
+test-results
+playwright-report
+*.log
+*.tsbuildinfo

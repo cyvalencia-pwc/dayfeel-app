@@ -1,0 +1,5 @@
+extends: ./nyc-base.yaml
+include:
+  - src/**
+all: true
+check-coverage: false
